@@ -29,7 +29,7 @@ export type ModalStaticFunctions = Record<NonNullable<ModalFuncProps['type']>, M
 export default function confirm(config: ModalFuncProps) {
   const container = document.createDocumentFragment();
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  let currentConfig = { ...config, close, visible: true } as any;
+  let currentConfig = { ...config, close, open: true } as any;
 
   function destroy(...args: any[]) {
     const triggerCancel = args.some(param => param && param.triggerCancel);
@@ -48,7 +48,14 @@ export default function confirm(config: ModalFuncProps) {
     reactUnmount(container);
   }
 
-  function render({ okText, cancelText, prefixCls: customizePrefixCls, ...props }: any) {
+  function render({
+    okText,
+    cancelText,
+    prefixCls: customizePrefixCls,
+    open,
+    visible,
+    ...props
+  }: any) {
     /**
      * https://github.com/ant-design/ant-design/issues/23623
      *
@@ -65,6 +72,7 @@ export default function confirm(config: ModalFuncProps) {
       reactRender(
         <ConfirmDialog
           {...props}
+          open={open ?? visible}
           prefixCls={prefixCls}
           rootPrefixCls={rootPrefixCls}
           iconPrefixCls={iconPrefixCls}
@@ -79,7 +87,7 @@ export default function confirm(config: ModalFuncProps) {
   function close(...args: any[]) {
     currentConfig = {
       ...currentConfig,
-      visible: false,
+      open: false,
       afterClose: () => {
         if (typeof config.afterClose === 'function') {
           config.afterClose();

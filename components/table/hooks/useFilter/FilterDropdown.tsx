@@ -137,6 +137,8 @@ function FilterDropdown<RecordType>(props: FilterDropdownProps<RecordType>) {
   } = props;
 
   const {
+    filterDropdownOpen,
+    onFilterDropdownOpenChange,
     filterDropdownVisible,
     onFilterDropdownVisibleChange,
     filterResetToDefaultFilteredValue,
@@ -150,12 +152,16 @@ function FilterDropdown<RecordType>(props: FilterDropdownProps<RecordType>) {
   );
   const triggerVisible = (newVisible: boolean) => {
     setVisible(newVisible);
+    onFilterDropdownOpenChange?.(newVisible);
     onFilterDropdownVisibleChange?.(newVisible);
   };
 
-  const mergedVisible =
-    typeof filterDropdownVisible === 'boolean' ? filterDropdownVisible : visible;
-
+  let mergedVisible: boolean;
+  if (typeof filterDropdownOpen === 'boolean') {
+    mergedVisible = filterDropdownOpen;
+  } else {
+    mergedVisible = typeof filterDropdownVisible === 'boolean' ? filterDropdownVisible : visible;
+  }
   // ===================== Select Keys =====================
   const propFilteredKeys = filterState?.filteredKeys;
   const [getFilteredKeysSync, setFilteredKeysSync] = useSyncState(propFilteredKeys || []);
@@ -363,7 +369,12 @@ function FilterDropdown<RecordType>(props: FilterDropdownProps<RecordType>) {
                 defaultExpandAll
                 filterTreeNode={
                   searchValue.trim()
-                    ? node => searchValueMatched(searchValue, node.title)
+                    ? node => {
+                        if (typeof filterSearch === 'function') {
+                          return filterSearch(searchValue, node);
+                        }
+                        return searchValueMatched(searchValue, node.title);
+                      }
                     : undefined
                 }
               />
@@ -458,8 +469,8 @@ function FilterDropdown<RecordType>(props: FilterDropdownProps<RecordType>) {
       <Dropdown
         overlay={menu}
         trigger={['click']}
-        visible={mergedVisible}
-        onVisibleChange={onVisibleChange}
+        open={mergedVisible}
+        onOpenChange={onVisibleChange}
         getPopupContainer={getPopupContainer}
         placement={direction === 'rtl' ? 'bottomLeft' : 'bottomRight'}
       >
